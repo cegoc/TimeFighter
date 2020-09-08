@@ -4,9 +4,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,7 +46,11 @@ class MainActivity : AppCompatActivity() {
         gameScoreTextView = findViewById(R.id.game_score_text_view)
         timeLeftTextView = findViewById(R.id.time_left_text_view)
         tapMeButton = findViewById(R.id.tap_me_button)
-        tapMeButton.setOnClickListener { incrementScore() }
+        tapMeButton.setOnClickListener { v ->
+            val bounceAnimation = AnimationUtils.loadAnimation(this, R.anim.bounce);
+            v.startAnimation(bounceAnimation)
+            incrementScore()
+        }
 
         if (savedInstanceState != null) {
             score = savedInstanceState.getInt(SCORE_KEY)
@@ -52,23 +60,40 @@ class MainActivity : AppCompatActivity() {
             resetGame()
         }
     }
-        //2 insert the values of score and timeLeft into the passed-in Bundle
-        override fun onSaveInstanceState(outState: Bundle) {
 
-            super.onSaveInstanceState(outState)
+    //2 insert the values of score and timeLeft into the passed-in Bundle
+    override fun onSaveInstanceState(outState: Bundle) {
 
-            outState.putInt(SCORE_KEY, score)
-            outState.putInt(TIME_LEFT_KEY, timeLeft)
-            countDownTimer.cancel()
+        super.onSaveInstanceState(outState)
 
-            Log.d(TAG, "onSaveInstanceState: Saving Score: $score & Time Left: $timeLeft")
+        outState.putInt(SCORE_KEY, score)
+        outState.putInt(TIME_LEFT_KEY, timeLeft)
+        countDownTimer.cancel()
+
+        Log.d(TAG, "onSaveInstanceState: Saving Score: $score & Time Left: $timeLeft")
+    }
+
+    //3
+    override fun onDestroy() {
+        super.onDestroy()
+
+        Log.d(TAG, "onDestroy called.")
+    }
+
+    override fun OnCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionesItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.about_item) {
+            showInfo()
         }
-        //3
-        override fun onDestroy() {
-            super.onDestroy()
+        return true
+    }
 
-            Log.d(TAG, "onDestroy called.")
-        }
     private fun incrementScore() {
         //increment score logic
         if (!gameStarted) {
@@ -143,5 +168,15 @@ class MainActivity : AppCompatActivity() {
     private fun endGame() {
         //end game logic
         Toast.makeText(this, getString(R.string.game_over_message, score), Toast.LENGTH_LONG).show()
+    }
+
+    private fun showInfo() {
+        val dialogTitle = getString(R.string.about_title,BuildConfig.VERSION_NAME)
+        val dialogMessage = getString(R.string.about_message)
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(dialogTitle)
+        builder.setMessage(dialogMessage)
+        builder.create()
     }
 }
